@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>INTERN PROJECT STATUS CHECKER</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff7f1;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .header-logos {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .header-logos img {
+      width: 100px;
+      height: auto;
+    }
+
+    .iac-logo {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0 0 0;
+    }
+
+    .iac-logo img {
+      width: 120px;
+      height: auto;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 40px;
+      font-weight: bold;
+      margin: 10px 0 20px 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .instructions {
+      text-align: left;
+      background: #e9f5ff;
+      padding: 15px;
+      border-left: 5px solid #007acc;
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button {
+      background-color: #EA7317;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #c85c07#c85c07;
+    }
+
+    #result {
+      text-align: left;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Logo Row -->
+  <div class="header-logos">
+    <img src="ccpl_logo.png" alt="CCPL Logo" />
+    <img src="gac_foundation_logo.png" alt="GAC Foundation Logo" />
+  </div>
+
+  <!-- IAC Logo Centered -->
+  <div class="iac-logo">
+    <img src="iac_Logo.png" alt="IAC Logo" />
+  </div>
+
+  <!-- Title -->
+  <div class="title">Intern Project Status Checker</div>
+
+  <!-- Main Box -->
+  <div class="container">
+    <!-- Instructions -->
+    <div class="instructions">
+      <h3>Instructions:</h3>
+      <ul>
+        <li>Enter your <strong>Intern ID</strong> (e.g., <code>IP23-000123</code> or <code>IP -3112</code>).</li>
+        <li>You may include or exclude spaces – it will still work.</li>
+        <li>If not found, your record might still be under processing.</li>
+      </ul>
+    </div>
+
+    <!-- Input -->
+    <input type="text" id="internId" placeholder="Enter your Intern ID" />
+    <button onclick="search()">Search</button>
+
+    <!-- Results -->
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let studentData = [];
+
+    // Normalization function: remove spaces, dashes convert to uppercase
+    function normalizeId(str) {
+      return str.replace(/[\s-]+/g, '').toUpperCase();
+    }
+
+    // Load CSV file
+    fetch("students.csv")
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.trim().split(/\r?\n/);
+        const headers = lines[0].split(",");
+        studentData = lines.slice(1).map(line => {
+          const values = line.split(",");
+          let obj = {};
+          headers.forEach((header, i) => {
+            obj[header.trim()] = values[i] ? values[i].trim() : "";
+          });
+          return obj;
+        });
+      });
+
+    // Search logic
+    function search() {
+      const inputId = normalizeId(document.getElementById("internId").value.trim());
+      const resultBox = document.getElementById("result");
+
+      if (!inputId) {
+        resultBox.innerHTML = "<span style='color:red;'>Please enter a valid Intern ID.</span>";
+        return;
+      }
+
+      const results = studentData.filter(s => {
+        const rawId = s["Intern ID"] || "";
+        return normalizeId(rawId) === inputId;
+      });
+
+      if (results.length > 0) {
+        resultBox.innerHTML = results.map(student => `
+          <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; background: #f9f9f9;">
+            <b>Intern ID:</b> ${student["Intern ID"]}<br>
+            <b>Name:</b> ${student["Name"]}<br>
+            <b>College:</b> ${student["College/ University Name"]}<br>
+            <b>Domain:</b> ${student["Domain Name"]}<br>
+            <b>Verification Status:</b> ${student["Verification Status"]}<br>
+            <b>Final Project Result:</b> ${student["Final Project Checking Result"]}<br>
+            <b>Excellence Award:</b> ${student["Final Excellence Award"]}<br>
+            <b>Comments:</b> ${student["Final Comment"]}<br>
+            <b>Experience Letter Sent:</b> ${student["Experience Letter Sent Date"]}<br>
+          </div>
+        `).join('');
+      } else {
+        resultBox.innerHTML = "<span style='color:red;'>Intern ID not found. Please check again.</span>";
+      }
+    }
+  </script>
+</body>
+</html>
